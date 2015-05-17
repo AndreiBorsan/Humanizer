@@ -88,6 +88,7 @@ namespace Humanizer.Localisation.NumberToWords
                         break;
                 }
                 
+
                 number %= 1000;
             }
 
