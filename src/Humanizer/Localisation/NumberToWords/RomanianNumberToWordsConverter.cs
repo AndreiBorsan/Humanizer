@@ -10,7 +10,6 @@ namespace Humanizer.Localisation.NumberToWords
 
         private static readonly Dictionary<int, string> OrdinalExceptions = new Dictionary<int, string>
         {
-            {1, "primul"},
             {5, "cincelea"},
             {8, "optulea"},
         };
@@ -38,36 +37,26 @@ namespace Humanizer.Localisation.NumberToWords
             if ((number / 1000000000) > 0)
             {
                 var firstPart = number / 1000000000;
-                switch (firstPart)
-                {
-                    case 1:
-                        parts.Add("un miliard");
-                        break;
-                    case 2:
-                        parts.Add("doua miliarde");
-                        break;
-                    default:
-                        parts.Add(string.Format("{0} de miliarde", Convert(number / 1000000000))); ;
-                        break;
-                }
+                if (firstPart == 1)
+                    parts.Add("un miliard");
+                else if (firstPart == 2)
+                    parts.Add("doua miliarde");
+                else if (firstPart > 20)
+                    parts.Add(string.Format("{0} de miliarde", Convert(number/1000000000)));
+                else parts.Add(string.Format("{0} miliarde", Convert(number / 1000000000)));
                 number %= 1000000000;
             }
 
             if ((number / 1000000) > 0)
             {
                 var firstPart = number / 1000000;
-                switch (firstPart)
-                {
-                    case 1:
-                        parts.Add("un milion");
-                        break;
-                    case 2:
-                        parts.Add("doua milioane");
-                        break;
-                    default:
-                        parts.Add(string.Format("{0} de milioane", Convert(number / 1000000)));;
-                        break;
-                }
+                if (firstPart == 1)
+                    parts.Add("un milion");
+                else if (firstPart == 2)
+                    parts.Add("doua milioane");
+                else if (firstPart > 20)
+                    parts.Add(string.Format("{0} de milioane", Convert(number/1000000)));
+                else parts.Add(string.Format("{0} milioane", Convert(number / 1000000)));
                 
                 number %= 1000000;
             }
@@ -75,19 +64,13 @@ namespace Humanizer.Localisation.NumberToWords
             if ((number / 1000) > 0)
             {
                 var firstPart = number/1000;
-                switch (firstPart)
-                {
-                    case 1:
-                        parts.Add("o mie");
-                        break;
-                    case 2:
-                        parts.Add("doua mii");
-                        break;
-                    default:
-                        parts.Add(string.Format("{0} de mii", Convert(number / 1000)));
-                        break;
-                }
-                
+                if (firstPart == 1)
+                    parts.Add("o mie");
+                else if (firstPart == 2)
+                    parts.Add("doua mii");
+                else if (firstPart > 20)
+                    parts.Add(string.Format("{0} de mii", Convert(number/1000)));
+                else parts.Add(string.Format("{0} mii", Convert(number / 1000)));
 
                 number %= 1000;
             }
@@ -112,17 +95,20 @@ namespace Humanizer.Localisation.NumberToWords
 
             if (number > 0)
             {
-                if (number < 20)
-                    parts.Add(GetUnitValue(number, isOrdinal));
+                if (number == 1 && parts.Count == 0 && isOrdinal)
+                    parts.Add("primul");
                 else
                 {
-                    var lastPart = TensMap[number / 10];
-                    if ((number % 10) > 0)
-                        lastPart += string.Format(" si {0}", GetUnitValue(number % 10, isOrdinal));
-                    //else if (isOrdinal)
-                    //    lastPart = lastPart.TrimEnd('y') + "ieth";
+                    if (number < 20)
+                        parts.Add(GetUnitValue(number, isOrdinal));
+                    else
+                    {
+                        var lastPart = TensMap[number/10];
+                        if ((number%10) > 0)
+                            lastPart += string.Format(" si {0}", GetUnitValue(number%10, isOrdinal));
 
-                    parts.Add(lastPart);
+                        parts.Add(lastPart);
+                    }
                 }
             }
             else if (isOrdinal)
@@ -130,7 +116,7 @@ namespace Humanizer.Localisation.NumberToWords
 
             string toWords = string.Join(" ", parts.ToArray());
 
-            if (isOrdinal)
+            if (isOrdinal && parts[0] != "primul")
                 toWords = AddPrefix(toWords);
 
             return toWords;
@@ -152,7 +138,7 @@ namespace Humanizer.Localisation.NumberToWords
 
         private static string AddPrefix(string toWords)
         {
-            return "al" + toWords;
+            return "al " + toWords;
         }
 
         private static bool ExceptionNumbersToWords(int number, out string words)
